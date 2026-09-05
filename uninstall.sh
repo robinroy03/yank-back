@@ -1,22 +1,33 @@
 #!/bin/bash
-# Removes yank-back hooks from ~/.claude/settings.json and deletes the script.
+# Removes yank-back from Claude Code and/or Cursor.
+#   ./uninstall.sh           # both
+#   ./uninstall.sh claude
+#   ./uninstall.sh cursor
 set -euo pipefail
-CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-SETTINGS="$CLAUDE_DIR/settings.json"
-HOOK_PATH="$CLAUDE_DIR/hooks/yank-back.sh"
 
-if [ -f "$SETTINGS" ]; then
-  tmp="$(mktemp)"
-  jq '
-    def strip: map(select(
-      (.hooks // []) | any(.command? // "" | contains("yank-back.sh")) | not
-    ));
-    if .hooks then
-      .hooks |= with_entries(.value |= strip)
-      | .hooks |= with_entries(select(.value | length > 0))
-      | if (.hooks | length) == 0 then del(.hooks) else . end
-    else . end
-  ' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
-  echo "✓ Removed yank-back hooks from $SETTINGS"
-fi
-rm -f "$HOOK_PATH" && echo "✓ Removed $HOOK_PATH"
+REPO_RAW="https://raw.githubusercontent.com/robinroy03/yank-back/main"
+target="${1:-all}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+
+run_uninstaller() {
+  local name="$1"
+  if [ -n "$script_dir" ] && [ -f "$script_dir/$name/uninstall.sh" ]; then
+    bash "$script_dir/$name/uninstall.sh"
+  else
+    curl -fsSL "$REPO_RAW/$name/uninstall.sh" | bash
+  fi
+}
+
+case "$target" in
+  all)
+    run_uninstaller claude
+    run_uninstaller cursor
+    ;;
+  claude|cursor)
+    run_uninstaller "$target"
+    ;;
+  *)
+    echo "usage: uninstall.sh [all|claude|cursor]" >&2
+    exit 1
+    ;;
+esac
