@@ -8,16 +8,17 @@ Works with [Claude Code](#claude-code) and [Cursor](#cursor).
 
 ## Install
 
-Both (Claude Code + Cursor):
+Each tool has its own one-liner. Want both? Run both.
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/robinroy03/yank-back/main/install.sh | bash
-```
-
-Just one:
+Claude Code:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/robinroy03/yank-back/main/claude/install.sh | bash
+```
+
+Cursor:
+
+```sh
 curl -fsSL https://raw.githubusercontent.com/robinroy03/yank-back/main/cursor/install.sh | bash
 ```
 
@@ -25,24 +26,20 @@ Or from a clone:
 
 ```sh
 git clone https://github.com/robinroy03/yank-back.git && cd yank-back
-./install.sh            # both
-./claude/install.sh     # Claude Code only
-./cursor/install.sh     # Cursor only
+./claude/install.sh     # Claude Code
+./cursor/install.sh     # Cursor
 ```
 
 That's it. Hooks install at the user level, so they work in every project.
 
 ## Uninstall
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/robinroy03/yank-back/main/uninstall.sh | bash
-```
+Delete the yank-back entries from the config file and remove the script:
 
-```sh
-./uninstall.sh            # both
-./claude/uninstall.sh     # Claude Code only
-./cursor/uninstall.sh     # Cursor only
-```
+- Claude Code: `~/.claude/settings.json` and `~/.claude/hooks/yank-back.sh`
+- Cursor: `~/.cursor/hooks.json` and `~/.cursor/hooks/yank-back.sh`
+
+Each installer also leaves a `*.yank-back.bak` backup of the config next to the original, if you'd rather restore that.
 
 ---
 
@@ -73,10 +70,40 @@ If no window matches, it still brings the terminal to the front.
 ```jsonc
 {
   "hooks": {
-    "Stop":         [{ "matcher": "",                                     "hooks": [{ "type": "command", "command": "~/.claude/hooks/yank-back.sh \"Task done — ready for your next prompt\"" }] }],
-    "Notification": [{ "matcher": "permission_prompt|elicitation_dialog", "hooks": [{ "type": "command", "command": "~/.claude/hooks/yank-back.sh \"Claude Code is waiting for your input\"" }] }],
-    "PreToolUse":   [{ "matcher": "AskUserQuestion",                      "hooks": [{ "type": "command", "command": "~/.claude/hooks/yank-back.sh \"Claude Code has a question for you\"" }] }]
-  }
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/yank-back.sh \"Task done — ready for your next prompt\"",
+          },
+        ],
+      },
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/yank-back.sh \"Claude Code is waiting for your input\"",
+          },
+        ],
+      },
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/yank-back.sh \"Claude Code has a question for you\"",
+          },
+        ],
+      },
+    ],
+  },
 }
 ```
 
@@ -85,7 +112,7 @@ Existing hooks are kept. Re-running the installer replaces the yank-back entries
 ### Caveats
 
 - **macOS only.** Uses `osascript` and System Events.
-- **Tabs.** Tested with [Ghostty](https://ghostty.org), which exposes each window's working directory to the accessibility API. Window-level matching is reliable; a background *tab* inside a multi-tab window may not be switched to, in which case you land in that app on the last active tab.
+- **Tabs.** Tested with [Ghostty](https://ghostty.org), which exposes each window's working directory to the accessibility API. Window-level matching is reliable; a background _tab_ inside a multi-tab window may not be switched to, in which case you land in that app on the last active tab.
 - **Other terminals.** iTerm2, Terminal.app, Kitty, WezTerm, etc. will be brought to the front. Whether the exact window is raised depends on whether the app exposes a working directory via accessibility.
 - Multiple sessions in the same directory: the first matching window wins.
 - The Stop hook also fires on `/clear`, resume, and compact.
@@ -121,10 +148,10 @@ Cursor does not expose a hook for in-chat tool-permission prompts, so those will
     "stop": [
       {
         "command": "~/.cursor/hooks/yank-back.sh \"Task done — ready for your next prompt\"",
-        "timeout": 10
-      }
-    ]
-  }
+        "timeout": 10,
+      },
+    ],
+  },
 }
 ```
 
@@ -142,13 +169,17 @@ Existing hooks are kept. Re-running the installer replaces the yank-back entries
 
 Environment variables read by the hook:
 
-| Variable | Effect |
-|---|---|
-| `YANK_BACK_NO_NOTIFY=1` | Skip the macOS notification, only focus the window |
-| `YANK_BACK_BUNDLE_ID` | Claude Code only: override the terminal app to focus (default: the app that launched Claude Code) |
-| `YANK_BACK_DEBUG=1` | Print which window matched to stderr |
+| Variable                | Effect                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| `YANK_BACK_NO_NOTIFY=1` | Skip the macOS notification, only focus the window                                                |
+| `YANK_BACK_BUNDLE_ID`   | Claude Code only: override the terminal app to focus (default: the app that launched Claude Code) |
+| `YANK_BACK_DEBUG=1`     | Print which window matched to stderr                                                              |
 
 For Claude Code, set them in `~/.claude/settings.json` under `"env"`. For Cursor, export them in your shell profile so the Cursor app inherits them, or wrap the hook command.
+
+## Disclaimer
+
+Code written by AI. I have not done any manual audit. But I do use it daily. So probably is safe :)
 
 ## License
 
