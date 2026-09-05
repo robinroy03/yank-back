@@ -6,6 +6,16 @@ The built-in notification tells you the agent is done. This one also brings the 
 
 Works with [Claude Code](#claude-code) and [Cursor](#cursor).
 
+## Testimonials
+
+> Saves me 25 hours a day.
+>
+> — A very efficient user
+
+> I’ve saved so much time I’m currently living in the future.
+>
+> — Someone from tomorrow
+
 ## Install
 
 Each tool has its own one-liner. Want both? Run both.
